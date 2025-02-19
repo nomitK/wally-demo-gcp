@@ -14,7 +14,9 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Adicionar middleware CORS
-app.use(cors());
+app.use(cors({
+    origin: 'https://nomitk.github.io' // Substitua pelo domínio do seu frontend
+}));
 
 // Endpoint para receber o áudio gravado
 app.post('/transcribe', upload.single('audio'), async (req, res) => {
