@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const speech = require('@google-cloud/speech');
 const multer = require('multer');
+const cors = require('cors'); // Importar o middleware cors
 
 // Crie um cliente de reconhecimento de fala
 const client = new speech.SpeechClient();
@@ -11,6 +12,9 @@ const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// Adicionar middleware CORS
+app.use(cors());
 
 // Endpoint para receber o áudio gravado
 app.post('/transcribe', upload.single('audio'), async (req, res) => {
