@@ -1,15 +1,83 @@
 <!DOCTYPE html>
-<html lang="en-EN">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Wally </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    
+    <title>Wally assistant</title>
+    <link rel="icon" type="image/png" href="img/favicon.ico"> <!-- Link to your favicon -->
+    <style>
+        body {
+            margin: 0; 
+            font-family: Arial, sans-serif; 
+        }
+        header {
+            background-color: #4CAF50; 
+            padding: 20px;
+            color: white; 
+            text-align: center;
+        }
+        main {
+            background-color: black; 
+            color: white; 
+            padding: 20px;
+            text-align: center;
+        }
+        footer {
+            background-color: #4CAF50; 
+            padding: 10px;
+            text-align: center; 
+        }
+        .heartbeat {
+            display: inline-block;
+            animation: heartbeat 1.5s infinite paused; /* Animação inicialmente pausada */
+        }
+        @keyframes heartbeat {
+            0%, 20% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1); /* Aumenta o tamanho do coração */
+            }
+            100% {
+                transform: scale(1); /* Retorna ao tamanho normal */
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Record Voice</h1>
-    <button id="startRecord">Strat Recording</button>
-    <button id="stopRecord" disabled>Stop Recording</button/>
-    <pre id="transcription"></pre>
 
-    <script src="script.js"></script>
+    <header>
+        <h1>Wally</h1>
+        <div class="header-text">be-healthy.ai</div>
+    </header>
+
+    <main>
+        <div class="heartbeat" id="heartContainer">
+            <img src="https://images.hindustantimes.com/img/2022/01/27/550x309/healthy-gdae63cff2_1280_1643268445755_1643268464696.png" alt="Pumpy Hearth" width="200" height="200"/>
+        </div>
+        <audio id="audioPlayback" controls style="display: none;"></audio>
+        <a id="downloadLink" style="display: none;">Baixar Gravação ?</a>
+        <div id="statusMessage"></div> <!-- Elemento para a mensagem de status -->
+        <p id="silenceCounter" style="display: none;">Silêncio há: <span id="count">0</span> segundos</p>
+
+            <!-- Adicionando os botões -->
+    <div>
+        <button id="askInitialQuestion">Fazer Pergunta Inicial</button>
+        <button id="startRecording">Iniciar Gravação</button>
+        <button id="generateNewQuestion">Gerar Nova Pergunta</button>
+        <button id="askGeneratedQuestion">Fazer Pergunta Gerada</button>
+        <button id="downloadAudio">Fazer Download do Áudio</button>
+        <button id="downloadScript">Fazer Download do Script</button>
+    </div>
+    </main>
+
+    <footer>
+        <p>© 2025 Be-Healthy.ai Demo</p>
+    </footer>
+    
+    <script src="scriptv4.js"> </script>
+    
 </body>
-</html>
+</html>   
