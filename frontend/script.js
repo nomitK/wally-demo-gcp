@@ -47,7 +47,8 @@ document.getElementById('startRecord').addEventListener('click', async () => {
         document.getElementById('startRecord').disabled = true;
 
         // Optional: Update button text or status message
-        document.getElementById('recordingStatus').textContent = "Recording..."; // Update a status message
+        console.log('Recording now');
+        //document.getElementById('recordingStatus').textContent = "Recording..."; // Update a status message
 
     } catch (error) {
         console.error("Could not start recording:", error);
