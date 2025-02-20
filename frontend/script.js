@@ -99,10 +99,11 @@ document.getElementById('startRecord').addEventListener('click', async () => {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
+        audioChunks.length = 0; // Ensure the audioChunks array is cleared before starting the recording
 
         mediaRecorder.ondataavailable = function(event) {
             if (event.data.size > 0) {
-                audioChunks.push(event.data);
+                audioChunks.push(event.data); // Collect audio data
             }
         };
 
@@ -114,7 +115,7 @@ document.getElementById('startRecord').addEventListener('click', async () => {
             const audioPlayer = new Audio(audioUrl);
             audioPlayer.play().then(async () => {
                 console.log('Playback started');
-                
+
                 // Convert the WEBM audio blob to WAV format
                 const wavBlob = await convertWebmToWav(audioBlob);
                 
@@ -142,7 +143,7 @@ document.getElementById('startRecord').addEventListener('click', async () => {
             });
         };
 
-        mediaRecorder.start(); 
+        mediaRecorder.start(); // Start recording
         document.getElementById('stopRecord').disabled = false;
         document.getElementById('startRecord').disabled = true;
 
@@ -156,7 +157,7 @@ document.getElementById('startRecord').addEventListener('click', async () => {
 
 // Event listener to stop recording
 document.getElementById('stopRecord').addEventListener('click', () => {
-    mediaRecorder.stop(); 
+    mediaRecorder.stop(); // Stop recording
     document.getElementById('stopRecord').disabled = true;
     document.getElementById('startRecord').disabled = false;
 
@@ -165,41 +166,52 @@ document.getElementById('stopRecord').addEventListener('click', () => {
 
 // Function to send transcription to Generative AI
 async function sendToGenerativeAI(transcription) {
-    
-    console.log('transcription',transcription);
-    
+    const apiKey = "AIzaSyCdrUb7yvO2XHAfM1IoQWFcOthyAqKZLyg"; // Replace with your actual API key
+
+    // Log the transcription being sent for better debugging
+    console.log('Transcription being sent to AI:', transcription);
+
+    // Prepare the request payload
     const requestData = {
-        prompt: transcription, // The transcription text you want to send
-        maxTokens: 50,        // Maximum number of tokens to generate
-        temperature: 0.7      // Controls randomness in the output
+        model: "gemini-2.0-flash", // Specify the model being used
+        prompt: {
+            text: transcription // Use the transcription text here
+        },
+        maxTokens: 50, // Control the maximum tokens in the response
+        temperature: 0.7 // Control randomness in the generated response
     };
 
     try {
-        // Sending a POST request to the Generative AI endpoint
-        const response = await fetch('https://wally-cloud-run-602876633752.europe-west2.run.app/api/generate-text', {
-            method: 'POST', // Use POST method for the API
+        // Sending POST request to the Generative Language API
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+            method: 'POST', 
             headers: {
-                'Content-Type': 'application/json' // Set content type to JSON
+                'Content-Type': 'application/json' // Indicate the request body type
             },
-            body: JSON.stringify(requestData) // Convert request data to JSON string
+            body: JSON.stringify(requestData) // Convert the request data to JSON format
         });
 
-        // Check if the response is ok (status in the range 200-299)
+        // Check if the response indicates success (status in the range 200-299)
         if (!response.ok) {
-            throw new Error("Network response was not ok: " + response.statusText);
+            throw new Error("Network response was not ok: " + response.statusText); // Handle errors
         }
 
         // Parse the JSON response from the AI service
         const responseData = await response.json();
-        
-        // Update the webpage with the AI response
-        document.getElementById('aiResponse').textContent = `Generative AI Response: ${responseData.responseText}`;
-        console.log('Generative AI Response:', responseData.responseText);
-        
+
+        // Check if the expected structure is present
+        if (responseData && responseData.response && responseData.response.text) {
+            // Update the webpage with the AI response
+            document.getElementById('aiResponse').textContent = `Generative AI Response: ${responseData.response.text}`;
+            console.log('Generative AI Response:', responseData.response.text); // Log the received AI response
+        } else {
+            console.error('Unexpected response structure:', responseData);
+            alert('Unexpected response structure from AI service.');
+        }
     } catch (error) {
         // Handle any errors that occur during the fetch or processing
         console.error('Error sending to Generative AI:', error);
-        alert('Error during AI request: ' + error.message); // User-friendly error message
+        alert('Error during AI request: ' + error.message); // Provide user-friendly feedback
     }
 }
 
