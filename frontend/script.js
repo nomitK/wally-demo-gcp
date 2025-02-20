@@ -5,27 +5,92 @@ async function convertWebmToWav(webmBlob) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = async () => {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const arrayBuffer = reader.result;
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const arrayBuffer = reader.result;
 
-            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-            // Ensure the sample rate is either adjusted here or in the subsequent step
-            const offlineContext = new OfflineAudioContext(1, audioBuffer.length, 16000); // setting to 16000 or your desired rate
-            const source = offlineContext.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect(offlineContext.destination);
-            source.start();
-            
-            offlineContext.startRendering().then(wavBuffer => {
-                const wavBlob = new Blob([new DataView(wavBuffer)], { type: 'audio/wav' });
-                resolve(wavBlob);
-            }).catch(reject);
+                // Create an OfflineAudioContext with the desired sample rate
+                const offlineContext = new OfflineAudioContext({
+                    numberOfChannels: 1,
+                    length: audioBuffer.length,
+                    sampleRate: 16000 // Desired sample rate
+                });
+
+                const source = offlineContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(offlineContext.destination);
+                source.start();
+
+                offlineContext.startRendering().then(renderedBuffer => {
+                    // Convert rendered audio buffer to a WAV file
+                    const wavArrayBuffer = audioBufferToWav(renderedBuffer); // Function that converts audio buffer to WAV
+                    const wavBlob = new Blob([wavArrayBuffer], { type: 'audio/wav' });
+                    resolve(wavBlob);
+                }).catch(renderingError => {
+                    reject(new Error("Rendering failed: " + renderingError.message));
+                });
+            } catch (error) {
+                reject(new Error("Conversion failed: " + error.message));
+            }
         };
 
-        reader.onerror = reject;
+        reader.onerror = error => reject(new Error("FileReader error: " + error.message));
         reader.readAsArrayBuffer(webmBlob);
     });
+}
+
+function audioBufferToWav(audioBuffer) {
+    // Utility function to convert an AudioBuffer to a WAV ArrayBuffer
+    var numOfChan = audioBuffer.numberOfChannels,
+        length = audioBuffer.length * numOfChan * 2 + 44,
+        buffer = new ArrayBuffer(length),
+        view = new DataView(buffer),
+        channels = [], i, sample,
+        offset = 0,
+        pos = 0;
+
+    // Write WAV header
+    setUint32(0x46464952); // "RIFF"
+    setUint32(length - 8); // file length - 8
+    setUint32(0x45564157); // "WAVE"
+
+    setUint32(0x20746d66); // "fmt " chunk
+    setUint32(16); // length = 16
+    setUint16(1); // PCM (uncompressed)
+    setUint16(numOfChan);
+    setUint32(audioBuffer.sampleRate);
+    setUint32(audioBuffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
+    setUint16(numOfChan * 2); // block-align
+    setUint16(16); // 16-bit (hardcoded in this demo)
+
+    setUint32(0x61746164); // "data" - chunk
+    setUint32(length - pos - 4); // chunk length
+
+    for (i = 0; i < audioBuffer.numberOfChannels; i++) channels.push(audioBuffer.getChannelData(i));
+
+    while (pos < length) {
+        for (i = 0; i < numOfChan; i++) { // interleave channels
+            sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
+            sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0; // scale to 16-bit signed int
+            view.setInt16(pos, sample, true); // write 16-bit sample
+            pos += 2;
+        }
+        offset++; // next source sample
+    }
+
+    function setUint16(data) {
+        view.setUint16(pos, data, true);
+        pos += 2;
+    }
+
+    function setUint32(data) {
+        view.setUint32(pos, data, true);
+        pos += 4;
+    }
+
+    return buffer;
 }
 
 
