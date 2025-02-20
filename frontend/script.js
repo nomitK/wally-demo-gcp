@@ -86,52 +86,50 @@ document.getElementById('startRecord').addEventListener('click', async () => {
             }
         };
 
-        mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Create a Blob from the audio data
-            console.log("Audio Blob created, Size:", audioBlob.size); // Log the size of the Blob
+mediaRecorder.onstop = async () => {
+    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Create a Blob from the audio data
+    console.log("Audio Blob created, Size:", audioBlob.size); // Log the size of the Blob
 
+    // Create an Audio object for playback
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audioPlayer = new Audio(audioUrl); // Create a new Audio instance
 
-            // Create an Audio object for playback
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audioPlayer = new Audio(audioUrl); // Create a new Audio instance
+    // Play the audio automatically
+    audioPlayer.play().then(async () => {
+        console.log('Playback started');
+        
+        // Convert the WEBM audio blob to WAV format
+        const wavBlob = await convertWebmToWav(audioBlob);
+        
+        const formData = new FormData();
+        formData.append("audio", wavBlob, 'recording.wav'); // Add WAV file to FormData
 
-            // Play the audio automatically
-            audioPlayer.play().then(async () => {
-            console.log('Playback started');
-            
-            // Convert the WEBM audio blob to WAV format
-            const wavBlob = await convertWebmToWav(audioBlob);
-            
-            const formData = new FormData();
-            formData.append("audio", wavBlob, 'recording.wav'); // Add WAV file to FormData
+        // Log FormData content for debugging
+        console.log("FormData Contents:", ...formData.entries());
 
-            // Log FormData content for debugging
-            console.log("FormData Contents:", ...formData.entries());
-            
-
-            // Send audio to the Cloud Run URL
-            try {
-                const response = await fetch('https://wally-cloud-run-602876633752.europe-west2.run.app/api/convert-speech', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error("Network response was not ok: " + response.statusText);
-                }
-
-                const data = await response.json();
-                document.getElementById('transcription').textContent = `Transcription: ${data.transcription}`;
-                console.log('Transcription:', data.transcription);
-            } catch (error) {
-                console.error('Error during transcription:', error);
-                alert('Error during transcription: ' + error.message); // User-friendly error message
-            } finally {
-                // Clear audio chunks after processing
-                audioChunks.length = 0; // Clear audio chunks for the next recording session
-                document.getElementById('recordingStatus').textContent = ""; // Reset status message
+        // Send audio to the Cloud Run URL
+        await fetch('https://wally-cloud-run-602876633752.europe-west2.run.app/api/convert-speech', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok: " + response.statusText);
             }
-        };
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('transcription').textContent = `Transcription: ${data.transcription}`;
+            console.log('Transcription:', data.transcription);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error during transcription: ' + error.message); // User-friendly error message
+        });
+    }).catch(error => {
+        console.error('Playback failed:', error);
+    });
+};
 
         mediaRecorder.start(); // Start recording
         document.getElementById('stopRecord').disabled = false;
