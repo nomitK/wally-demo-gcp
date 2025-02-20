@@ -165,6 +165,9 @@ document.getElementById('stopRecord').addEventListener('click', () => {
 
 // Function to send transcription to Generative AI
 async function sendToGenerativeAI(transcription) {
+    
+    console.log('transcription',transcription);
+    
     const requestData = {
         prompt: transcription, // The transcription text you want to send
         maxTokens: 50,        // Maximum number of tokens to generate
