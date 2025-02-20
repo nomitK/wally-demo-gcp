@@ -89,6 +89,15 @@ document.getElementById('startRecord').addEventListener('click', async () => {
         mediaRecorder.onstop = async () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Create a Blob from the audio data
             console.log("Audio Blob created, Size:", audioBlob.size); // Log the size of the Blob
+
+
+            // Create an Audio object for playback
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audioPlayer = new Audio(audioUrl); // Create a new Audio instance
+
+            // Play the audio automatically
+            audioPlayer.play().then(async () => {
+            console.log('Playback started');
             
             // Convert the WEBM audio blob to WAV format
             const wavBlob = await convertWebmToWav(audioBlob);
