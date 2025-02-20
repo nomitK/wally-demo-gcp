@@ -14,17 +14,17 @@ document.getElementById('startRecord').addEventListener('click', async () => {
         };
 
         mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Create a Blob from the collected audio data
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
             const formData = new FormData();
-            formData.append("audio", audioBlob, 'recording.webm'); // Add audio file to FormData
+            formData.append("audio", audioBlob, 'recording.webm');
 
-            // Log formData content
+            // Log formData content for debugging
             console.log(...formData.entries());
 
-            // Cloud Run URL
+            // Send audio to the Cloud Run URL
             await fetch('https://wally-cloud-run-602876633752.europe-west2.run.app/api/convert-speech', {
                 method: 'POST',
-                body: formData // Send the FormData directly
+                body: formData
             })
             .then(response => {
                 if (!response.ok) {
@@ -38,13 +38,16 @@ document.getElementById('startRecord').addEventListener('click', async () => {
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error during transcription. Please try again.'); // User-friendly error
+                alert('Error during transcription: ' + error.message); // User-friendly error
             });
         };
 
         mediaRecorder.start(); // Start recording
         document.getElementById('stopRecord').disabled = false;
         document.getElementById('startRecord').disabled = true;
+
+        // Optional: Update button text or status message
+        document.getElementById('recordingStatus').textContent = "Recording..."; // Update a status message
 
     } catch (error) {
         console.error("Could not start recording:", error);
@@ -58,4 +61,7 @@ document.getElementById('stopRecord').addEventListener('click', () => {
     document.getElementById('stopRecord').disabled = true;
     document.getElementById('startRecord').disabled = false;
     audioChunks.length = 0; // Clear audio chunks for the next recording session
+
+    // Optional: Reset status message
+    document.getElementById('recordingStatus').textContent = ""; // Reset status message
 });
