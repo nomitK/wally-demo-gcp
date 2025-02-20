@@ -64,5 +64,5 @@ document.getElementById('stopRecord').addEventListener('click', () => {
     audioChunks.length = 0; // Clear audio chunks for the next recording session
 
     // Optional: Reset status message
-    document.getElementById('recordingStatus').textContent = ""; // Reset status message
+    //document.getElementById('recordingStatus').textContent = ""; // Reset status message
 });
