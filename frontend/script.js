@@ -48,7 +48,7 @@ document.getElementById('startRecord').addEventListener('click', async () => {
 
         // Optional: Update button text or status message
         console.log('Recording now');
-        //document.getElementById('recordingStatus').textContent = "Recording..."; // Update a status message
+        // document.getElementById('recordingStatus').textContent = "Recording..."; // Update a status message
 
     } catch (error) {
         console.error("Could not start recording:", error);
@@ -64,5 +64,5 @@ document.getElementById('stopRecord').addEventListener('click', () => {
     audioChunks.length = 0; // Clear audio chunks for the next recording session
 
     // Optional: Reset status message
-    //document.getElementById('recordingStatus').textContent = ""; // Reset status message
+    //bdocument.getElementById('recordingStatus').textContent = ""; // Reset status message
 });
