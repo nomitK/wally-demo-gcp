@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en-US">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,6 +44,11 @@
                 transform: scale(1); /* Retorna ao tamanho normal */
             }
         }
+        #recordingStatus {
+            font-weight: bold;
+            color: yellow; /* Change to any color that stands out */
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -60,20 +65,21 @@
         <audio id="audioPlayback" controls style="display: none;"></audio>
         <a id="downloadLink" style="display: none;">Baixar Gravação ?</a>
         <div id="statusMessage"></div> <!-- Elemento para a mensagem de status -->
+        <div id="recordingStatus"></div> <!-- Elemento para status de gravação -->
         <p id="silenceCounter" style="display: none;">Silêncio há: <span id="count">0</span> segundos</p>
 
-            <!-- Adicionando os botões -->
-    <div>
-        <button id="startRecord">Start Recording</button>
-        <button id="stopRecord">Stop Recording</button>
-    </div>
+        <!-- Adicionando os botões -->
+        <div>
+            <button id="startRecord">Start Recording</button>
+            <button id="stopRecord">Stop Recording</button>
+        </div>
     </main>
 
     <footer>
         <p>© 2025 Be-Healthy.ai Demo</p>
     </footer>
     
-    <script src="frontend/script.js"> </script>
+    <script src="frontend/script.js"></script>
     
 </body>
-</html>   
+</html>
