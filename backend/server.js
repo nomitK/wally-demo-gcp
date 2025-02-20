@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 
 // Endpoint para receber o áudio gravado
-app.post('/transcribe', upload.single('audio'), async (req, res) => {
+app.post('/api/convert-speech', upload.single('audio'), async (req, res) => {
     try {
         const fileName = req.file.path; // Obtém o caminho do arquivo enviado
         const file = fs.readFileSync(fileName);
