@@ -15,11 +15,13 @@ document.getElementById('startRecord').addEventListener('click', async () => {
 
         mediaRecorder.onstop = async () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // Create a Blob from the collected audio data
-
             const formData = new FormData();
             formData.append("audio", audioBlob, 'recording.webm'); // Add audio file to FormData
 
-            // Replace with your Cloud Run URL
+            // Log formData content
+            console.log(...formData.entries());
+
+            // Cloud Run URL
             await fetch('https://wally-cloud-run-602876633752.europe-west2.run.app/api/convert-speech', {
                 method: 'POST',
                 body: formData // Send the FormData directly
@@ -36,6 +38,7 @@ document.getElementById('startRecord').addEventListener('click', async () => {
             })
             .catch(error => {
                 console.error('Error:', error);
+                alert('Error during transcription. Please try again.'); // User-friendly error
             });
         };
 
