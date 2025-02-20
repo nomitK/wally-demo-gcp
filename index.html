@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     
-    <title>Wally assistant</title>
+    <title>Wally Assistant</title>
     <link rel="icon" type="image/png" href="favicon.ico"> <!-- Link to your favicon -->
     <style>
         body {
@@ -31,23 +31,28 @@
         }
         .heartbeat {
             display: inline-block;
-            animation: heartbeat 1.5s infinite paused; /* Animação inicialmente pausada */
+            animation: heartbeat 1.5s infinite paused;
         }
         @keyframes heartbeat {
             0%, 20% {
                 transform: scale(1);
             }
             50% {
-                transform: scale(1.1); /* Aumenta o tamanho do coração */
+                transform: scale(1.1);
             }
             100% {
-                transform: scale(1); /* Retorna ao tamanho normal */
+                transform: scale(1);
             }
         }
         #recordingStatus {
             font-weight: bold;
-            color: yellow; /* Change to any color that stands out */
+            color: yellow;
             margin-top: 10px;
+        }
+        #aiResponse {
+            margin-top: 20px; /* Added margin for spacing */
+            color: lightgreen; /* Set color to differentiate from transcription */
+            font-weight: bold; /* Make it bold for emphasis */
         }
     </style>
 </head>
@@ -60,17 +65,21 @@
 
     <main>
         <div class="heartbeat" id="heartContainer">
-            <img src="https://images.hindustantimes.com/img/2022/01/27/550x309/healthy-gdae63cff2_1280_1643268445755_1643268464696.png" alt="Pumpy Hearth" width="200" height="200"/>
+            <img src="https://images.hindustantimes.com/img/2022/01/27/550x309/healthy-gdae63cff2_1280_1643268445755_1643268464696.png" alt="Pumpy Heart" width="200" height="200"/>
         </div>
         <audio id="audioPlayback" controls style="display: none;"></audio>
-        <a id="downloadLink" style="display: none;">Baixar Gravação ?</a>
-        <div id="statusMessage"></div> <!-- Elemento para a mensagem de status -->
-        <div id="recordingStatus"></div> <!-- Elemento para status de gravação -->
+        <a id="downloadLink" style="display: none;">Baixar Gravação?</a>
+        <div id="statusMessage"></div>
+        <div id="recordingStatus"></div>
         <p id="silenceCounter" style="display: none;">Silêncio há: <span id="count">0</span> segundos</p>
-            <!-- Element to display the transcription -->
-    <div id="transcription">Transcription will appear here...</div>
+        
+        <!-- Element to display the transcription -->
+        <div id="transcription">Transcription will appear here...</div>
 
-        <!-- Adicionando os botões -->
+        <!-- Element to display AI response -->
+        <div id="aiResponse">Generative AI Response will appear here...</div> <!-- Added this line -->
+
+        <!-- Buttons to control recording -->
         <div>
             <button id="startRecord">Start Recording</button>
             <button id="stopRecord">Stop Recording</button>
