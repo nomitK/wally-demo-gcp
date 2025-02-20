@@ -173,3 +173,41 @@ document.getElementById('stopRecord').addEventListener('click', () => {
     // Optional: You can display a message here indicating that recording has stopped
     console.log('Recording stopped');
 });
+
+// Function to send transcription to Generative AI
+async function sendToGenerativeAI(transcription) {
+    const requestData = {
+        prompt: transcription, // The transcription text you want to send
+        maxTokens: 50,        // Maximum number of tokens to generate
+        temperature: 0.7      // Controls randomness in the output
+    };
+
+    try {
+        // Sending a POST request to the Generative AI endpoint
+        const response = await fetch('https://wally-cloud-run-602876633752.europe-west2.run.app/api/generate-text', {
+            method: 'POST', // Use POST method for the API
+            headers: {
+                'Content-Type': 'application/json' // Set content type to JSON
+            },
+            body: JSON.stringify(requestData) // Convert request data to JSON string
+        });
+
+        // Check if the response is ok (status in the range 200-299)
+        if (!response.ok) {
+            throw new Error("Network response was not ok: " + response.statusText);
+        }
+
+        // Parse the JSON response from the AI service
+        const responseData = await response.json();
+        
+        // Update the webpage with the AI response
+        document.getElementById('aiResponse').textContent = `Generative AI Response: ${responseData.responseText}`;
+        console.log('Generative AI Response:', responseData.responseText);
+        
+    } catch (error) {
+        // Handle any errors that occur during the fetch or processing
+        console.error('Error sending to Generative AI:', error);
+        alert('Error during AI request: ' + error.message); // User-friendly error message
+    }
+}
+
