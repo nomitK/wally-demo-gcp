@@ -154,6 +154,15 @@ document.getElementById('startRecord').addEventListener('click', async () => {
     }
 });
 
+// Event listener to stop recording
+document.getElementById('stopRecord').addEventListener('click', () => {
+    mediaRecorder.stop(); 
+    document.getElementById('stopRecord').disabled = true;
+    document.getElementById('startRecord').disabled = false;
+
+    console.log('Recording stopped');
+});
+
 // Function to send transcription to Generative AI
 async function sendToGenerativeAI(transcription) {
     const requestData = {
