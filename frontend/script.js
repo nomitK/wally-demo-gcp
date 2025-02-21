@@ -129,8 +129,8 @@ document.getElementById('startRecord').addEventListener('click', async () => {
 
             const audioUrl = URL.createObjectURL(audioBlob);
             const audioPlayer = new Audio(audioUrl);
-            audioPlayer.play().then(async () => {
-                console.log('Playback started');
+            //audioPlayer.play().then(async () => {
+            //    console.log('Playback started');
 
                 // Convert the WEBM audio blob to WAV format
                 const wavBlob = await convertWebmToWav(audioBlob);
