@@ -221,7 +221,7 @@ async function sendToGenerativeAI(transcription) {
             document.getElementById('aiResponse').textContent = `Generative AI Response: ${generatedText}`;
             console.log('Generative AI Response:', generatedText); // Log the response text
 
-         //   speakText(generatedText); // Call to speak the generated text
+           speakText(generatedText); // Call to speak the generated text
         } else {
             console.error('Unexpected response structure:', responseData);
             alert('Unexpected response from AI service. Please check the server.');
