@@ -164,17 +164,17 @@ document.getElementById('stopRecord').addEventListener('click', () => {
     console.log('Recording stopped');
 });
 
-// Function to send transcription directly to the API via the server
+// Function to send transcription directly to Generative AI
 async function sendToGenerativeAI(transcription) {
     const apiKey = "AIzaSyCdrUb7yvO2XHAfM1IoQWFcOthyAqKZLyg"; // Use your actual API key
 
     console.log('Transcription being sent to AI:', transcription); // Log the transcription being sent
 
-    // Prepare the request payload in the expected structure
+    // Prepare the request payload
     const requestData = {
         contents: [{
             parts: [{
-                text: transcription // Directly set the transcription as the text part
+                text: transcription // Set transcription as the text part
             }]
         }]
     };
@@ -182,26 +182,34 @@ async function sendToGenerativeAI(transcription) {
     try {
         // Sending POST request to the Generative Language API
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-            method: 'POST', 
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json' // Indicate the request body is JSON
             },
             body: JSON.stringify(requestData) // Convert the request data to JSON format
         });
 
-        // Check if the response is okay (status in the range 200-299)
+        // Check if the response is ok (status in the range 200-299)
         if (!response.ok) {
-            const errorResponse = await response.json(); // Parse error response as JSON
+            const errorResponse = await response.json(); // Get the error details
+            console.error('Error response from API:', errorResponse); // Log error response
             throw new Error(`Network response was not ok: ${errorResponse.error}`); // Provide detailed error
         }
 
         // Parse the JSON response from the AI service
         const responseData = await response.json();
-        
-        // Update the webpage with the AI response
-        document.getElementById('aiResponse').textContent = `Generative AI Response: ${responseData.response.text}`; // Adjust according to the returned structure
-        console.log('Generative AI Response:', responseData.response.text); // Log the AI's response
-        
+        console.log('Complete Response Data:', responseData); // Log the complete response data
+
+        // Check if the response contains the expected structure before accessing
+        if (responseData && responseData.response && responseData.response.text) {
+            // Update the webpage with the AI response
+            document.getElementById('aiResponse').textContent = `Generative AI Response: ${responseData.response.text}`;
+            console.log('Generative AI Response:', responseData.response.text); // Log the AI's text response
+        } else {
+            console.error('Unexpected response structure:', responseData);
+            alert('Unexpected response from AI service. Please check the server logs.');
+        }
+
     } catch (error) {
         // Handle any errors that occur during the fetch or processing
         console.error('Error sending to Generative AI:', error);
