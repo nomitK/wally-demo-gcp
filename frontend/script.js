@@ -94,12 +94,28 @@ function audioBufferToWav(audioBuffer) {
 }
 
 
+// Function to vocally say the AI response
+function speakText(text) {
+    // Check if the SpeechSynthesis API is supported
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text); // Create a new utterance for the text
+        utterance.lang = 'en-US'; // Set the language
+        utterance.pitch = 1; // You can adjust the pitch
+        utterance.rate = 1; // You can adjust the rate of speech
+
+        // Speak the text
+        window.speechSynthesis.speak(utterance);
+    } else {
+        console.error("SpeechSynthesis API is not supported in this browser.");
+    }
+}
+
 // Event listener to start recording
 document.getElementById('startRecord').addEventListener('click', async () => {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
-        audioChunks.length = 0; // Ensure the audioChunks array is cleared before starting the recording
+        audioChunks.length = 0; // Clear previous audio chunks
 
         mediaRecorder.ondataavailable = function(event) {
             if (event.data.size > 0) {
@@ -125,7 +141,7 @@ document.getElementById('startRecord').addEventListener('click', async () => {
                 // Send audio to the Cloud Run URL for transcription
                 const transcriptionResponse = await fetch('https://wally-cloud-run-602876633752.europe-west2.run.app/api/convert-speech', {
                     method: 'POST',
-                    body: formData
+                    body: formData 
                 });
 
                 if (!transcriptionResponse.ok) {
@@ -133,11 +149,11 @@ document.getElementById('startRecord').addEventListener('click', async () => {
                 }
 
                 const transcriptionData = await transcriptionResponse.json();
-                document.getElementById('transcription').textContent = `Transcription: ${transcriptionData.transcription}`;
-                console.log('Transcription:', transcriptionData.transcription);
-
-                // Send transcription to Generative AI for further processing
-                await sendToGenerativeAI(transcriptionData.transcription);
+                const transcriptionText = transcriptionData.transcription; // Get the transcription text
+                document.getElementById('transcription').textContent = `Transcription: ${transcriptionText}`;
+                
+                // Call the updated function that sends transcription directly to the AI
+                await sendToGenerativeAI(transcriptionText);
             }).catch(error => {
                 console.error('Playback failed:', error);
             });
@@ -164,17 +180,18 @@ document.getElementById('stopRecord').addEventListener('click', () => {
     console.log('Recording stopped');
 });
 
-// Function to send transcription directly to the API via the server
+
+// Function to send transcription to Generative AI
 async function sendToGenerativeAI(transcription) {
-    const apiKey = "AIzaSyCdrUb7yvO2XHAfM1IoQWFcOthyAqKZLyg"; // Ensure to use your actual API key
+    const apiKey = "AIzaSyCdrUb7yvO2XHAfM1IoQWFcOthyAqKZLyg"; // Your actual API key
 
-    console.log('Transcription being sent to AI:', transcription);
+    console.log('Transcription being sent to AI:', transcription); // Log the transcription being sent
 
-    // Prepare the request payload
+    // Prepare the request payload in the expected structure
     const requestData = {
         contents: [{
             parts: [{
-                text: transcription // Use transcription here for content
+                text: transcription // Set transcription as the text part
             }]
         }]
     };
@@ -182,34 +199,41 @@ async function sendToGenerativeAI(transcription) {
     try {
         // Sending POST request to the Generative Language API
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
+            method: 'POST', 
             headers: {
-                'Content-Type': 'application/json' // Indicate the request body is JSON
+                'Content-Type': 'application/json' // Set content type to JSON
             },
             body: JSON.stringify(requestData) // Convert the request data to JSON format
         });
 
         // Check if the response is ok (status in the range 200-299)
         if (!response.ok) {
-            const errorResponse = await response.json(); // Get the error details
-            throw new Error("Network response was not ok: " + errorResponse.error);
+            const errorResponse = await response.json(); // Get error response data
+            throw new Error(`Network response was not ok: ${errorResponse.error}`); // Provide detailed error
         }
 
-        // Parse the JSON response from the API service
+        // Parse the JSON response from the AI service
         const responseData = await response.json();
         console.log('Complete Response Data:', responseData); // Log complete response data
 
         // Extract the generated text from the candidates array
         if (responseData.candidates && responseData.candidates.length > 0) {
-            const generatedText = responseData.candidates[0].content.parts[0].text; // Access generated response correctly
-            document.getElementById('aiResponse').textContent = `Generative AI Response: ${generatedText}`;
-            console.log('Generative AI Response:', generatedText); // Log the response text
+            const generatedText = responseData.candidates[0].content.parts[0].text; // Accessing generated text
+            
+            // Update the webpage with the AI response
+            document.getElementById('aiResponse').textContent = `Generative AI Response: ${generatedText}`; // Display the response
+            console.log('Generative AI Response:', generatedText); // Log the response
+            
+            // Speak the generated response
+            speakText(generatedText); // Call speakText function to vocally say the answer
         } else {
             console.error('Unexpected response structure:', responseData);
             alert('Unexpected response from AI service. Please check the server.');
         }
+
     } catch (error) {
+        // Handle any errors that occur during the fetch or processing
         console.error('Error sending to Generative AI:', error);
-        alert('Error during AI request: ' + error.message); // Provide user-friendly feedback
+        alert('Error during AI request: ' + error.message); // User-friendly error message
     }
 }
