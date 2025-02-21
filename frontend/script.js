@@ -164,54 +164,48 @@ document.getElementById('stopRecord').addEventListener('click', () => {
     console.log('Recording stopped');
 });
 
-// Function to send transcription directly to Generative AI
 async function sendToGenerativeAI(transcription) {
     const apiKey = "AIzaSyCdrUb7yvO2XHAfM1IoQWFcOthyAqKZLyg"; // Use your actual API key
 
-    console.log('Transcription being sent to AI:', transcription); // Log the transcription being sent
+    console.log('Transcription being sent to AI:', transcription);
 
-    // Prepare the request payload
     const requestData = {
         contents: [{
             parts: [{
-                text: transcription // Set transcription as the text part
+                text: transcription
             }]
         }]
     };
 
     try {
-        // Sending POST request to the Generative Language API
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-            method: 'POST', 
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json' // Indicate the request body type
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(requestData) // Convert the request data to JSON format
+            body: JSON.stringify(requestData)
         });
 
-        // Check if the response is ok (status in the range 200-299)
         if (!response.ok) {
-            const errorResponse = await response.json(); // Get the error details
+            const errorResponse = await response.json();
             throw new Error("Network response was not ok: " + errorResponse.error);
         }
 
-        // Parse the JSON response from the AI service
         const responseData = await response.json();
-        console.log('Complete Response Data:', responseData); // Log complete response data
+        console.log('Complete Response Data:', responseData);
 
-        // Access the first candidate, assuming it's structured correctly
         if (responseData.candidates && responseData.candidates.length > 0) {
-            const generatedText = responseData.candidates[0].text; // Adjust based on the actual structure of the candidates
-            document.getElementById('aiResponse').textContent = `Generative AI Response: ${generatedText}`; // Display the generated response
-            console.log('Generative AI Response:', generatedText); // Log the response
+            console.log('Candidates:', responseData.candidates); // Log candidates for inspection
+            const generatedText = responseData.candidates[0]?.text || 'No response text available'; // Adjusted access
+            document.getElementById('aiResponse').textContent = `Generative AI Response: ${generatedText}`;
+            console.log('Generative AI Response:', generatedText);
         } else {
             console.error('Unexpected response structure:', responseData);
-            alert('Unexpected response from AI service. Prompt might not have generated content.');
+            alert('Unexpected response from AI service. Please check the server logs.');
         }
 
     } catch (error) {
-        // Handle any errors that occur during the fetch or processing
         console.error('Error sending to Generative AI:', error);
-        alert('Error during AI request: ' + error.message); // User-friendly error message
+        alert('Error during AI request: ' + error.message);
     }
 }
