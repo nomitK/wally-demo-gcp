@@ -164,54 +164,27 @@ document.getElementById('stopRecord').addEventListener('click', () => {
     console.log('Recording stopped');
 });
 
-// Function to send transcription to Generative AI
+// Function to send transcription directly to Generative AI
 async function sendToGenerativeAI(transcription) {
-    const apiKey = "AIzaSyCdrUb7yvO2XHAfM1IoQWFcOthyAqKZLyg"; // Replace with your actual API key
+    const genAI = new GoogleGenerativeAI("AIzaSyCdrUb7yvO2XHAfM1IoQWFcOthyAqKZLyg"); // Use your actual API key
 
-    // Log the transcription being sent for better debugging
-    console.log('Transcription being sent to AI:', transcription);
+    console.log('Transcription being sent to AI:', transcription); // Log the transcription being sent
 
-    // Prepare the request payload
-    const requestData = {
-        model: "gemini-2.0-flash", // Specify the model being used
-        prompt: {
-            text: transcription // Use the transcription text here
-        },
-        maxTokens: 50, // Control the maximum tokens in the response
-        temperature: 0.7 // Control randomness in the generated response
-    };
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // Get the generative model
 
     try {
-        // Sending POST request to the Generative Language API
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-            method: 'POST', 
-            headers: {
-                'Content-Type': 'application/json' // Indicate the request body type
-            },
-            body: JSON.stringify(requestData) // Convert the request data to JSON format
-        });
+        // Generate content using the model
+        const result = await model.generateContent(transcription); // Send the transcription as the prompt
+        console.log('Generative AI Response:', result.response.text()); // Log the AI's response
 
-        // Check if the response indicates success (status in the range 200-299)
-        if (!response.ok) {
-            throw new Error("Network response was not ok: " + response.statusText); // Handle errors
-        }
-
-        // Parse the JSON response from the AI service
-        const responseData = await response.json();
-
-        // Check if the expected structure is present
-        if (responseData && responseData.response && responseData.response.text) {
-            // Update the webpage with the AI response
-            document.getElementById('aiResponse').textContent = `Generative AI Response: ${responseData.response.text}`;
-            console.log('Generative AI Response:', responseData.response.text); // Log the received AI response
-        } else {
-            console.error('Unexpected response structure:', responseData);
-            alert('Unexpected response structure from AI service.');
-        }
+        // Update the webpage with the AI response
+        document.getElementById('aiResponse').textContent = `Generative AI Response: ${result.response.text()}`;
+        
     } catch (error) {
         // Handle any errors that occur during the fetch or processing
         console.error('Error sending to Generative AI:', error);
-        alert('Error during AI request: ' + error.message); // Provide user-friendly feedback
+        alert('Error during AI request: ' + error.message); // User-friendly error message
     }
 }
+
 
