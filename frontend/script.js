@@ -113,10 +113,12 @@ function speakText(text) {
 // Event listener to start recording
 document.getElementById('startRecord').addEventListener('click', async () => {
     try {
+        // Request permission to use the microphone
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
-        audioChunks.length = 0; // Ensure the audioChunks array is cleared before starting the recording
+        audioChunks.length = 0; // Clear any previously recorded audio chunks
 
+        // Collect audio data from the media recorder
         mediaRecorder.ondataavailable = function(event) {
             if (event.data.size > 0) {
                 audioChunks.push(event.data); // Collect audio data
@@ -127,44 +129,36 @@ document.getElementById('startRecord').addEventListener('click', async () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
             console.log("Audio Blob created, Size:", audioBlob.size);
 
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audioPlayer = new Audio(audioUrl);
-            //audioPlayer.play().then(async () => {
-            //    console.log('Playback started');
+            // Convert the WEBM audio blob to WAV format
+            const wavBlob = await convertWebmToWav(audioBlob);
+            const formData = new FormData();
+            formData.append("audio", wavBlob, 'recording.wav');
 
-                // Convert the WEBM audio blob to WAV format
-                const wavBlob = await convertWebmToWav(audioBlob);
-                
-                const formData = new FormData();
-                formData.append("audio", wavBlob, 'recording.wav');
-
-                // Send audio to the Cloud Run URL for transcription
-                const transcriptionResponse = await fetch('https://wally-cloud-run-602876633752.europe-west2.run.app/api/convert-speech', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!transcriptionResponse.ok) {
-                    throw new Error("Network response was not ok: " + transcriptionResponse.statusText);
-                }
-
-                const transcriptionData = await transcriptionResponse.json();
-                document.getElementById('transcription').textContent = `Transcription: ${transcriptionData.transcription}`;
-                console.log('Transcription:', transcriptionData.transcription);
-
-                // Send transcription to Generative AI for further processing
-                await sendToGenerativeAI(transcriptionData.transcription);
-            }).catch(error => {
-                console.error('Playback failed:', error);
+            // Send audio to the Cloud Run URL for transcription
+            console.log('Sending audio to transcription API...');
+            const transcriptionResponse = await fetch('https://wally-cloud-run-602876633752.europe-west2.run.app/api/convert-speech', {
+                method: 'POST',
+                body: formData
             });
+
+            if (!transcriptionResponse.ok) {
+                throw new Error("Network response was not ok: " + transcriptionResponse.statusText);
+            }
+
+            const transcriptionData = await transcriptionResponse.json();
+            document.getElementById('transcription').textContent = `Transcription: ${transcriptionData.transcription}`;
+            console.log('Transcription:', transcriptionData.transcription);
+
+            // Send transcription to Generative AI for further processing
+            await sendToGenerativeAI(transcriptionData.transcription);  // Now calls the function correctly
         };
 
         mediaRecorder.start(); // Start recording
-        document.getElementById('stopRecord').disabled = false;
-        document.getElementById('startRecord').disabled = true;
+        document.getElementById('stopRecord').disabled = false; // Enable stop button
+        document.getElementById('startRecord').disabled = true; // Disable start button
 
         console.log('Recording now');
-        document.getElementById('recordingStatus').textContent = "Recording...";
+        document.getElementById('recordingStatus').textContent = "Recording..."; // Update UI status
     } catch (error) {
         console.error("Could not start recording:", error);
         alert("Recording permissions denied. Please check your microphone settings.");
