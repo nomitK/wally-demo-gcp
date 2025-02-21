@@ -93,6 +93,22 @@ function audioBufferToWav(audioBuffer) {
     return buffer;
 }
 
+// Function to vocally say the AI response
+function speakText(text) {
+    // Check if the SpeechSynthesis API is supported
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text); // Create a new utterance for the text
+        utterance.lang = 'en-US'; // Set the language
+        utterance.pitch = 1; // You can adjust the pitch
+        utterance.rate = 1; // You can adjust the rate of speech
+
+        // Speak the text
+        window.speechSynthesis.speak(utterance);
+    } else {
+        console.error("SpeechSynthesis API is not supported in this browser.");
+    }
+}
+
 
 // Event listener to start recording
 document.getElementById('startRecord').addEventListener('click', async () => {
@@ -204,6 +220,8 @@ async function sendToGenerativeAI(transcription) {
             const generatedText = responseData.candidates[0].content.parts[0].text; // Access generated response correctly
             document.getElementById('aiResponse').textContent = `Generative AI Response: ${generatedText}`;
             console.log('Generative AI Response:', generatedText); // Log the response text
+
+            speakText(generatedText); // Call to speak the generated text
         } else {
             console.error('Unexpected response structure:', responseData);
             alert('Unexpected response from AI service. Please check the server.');
